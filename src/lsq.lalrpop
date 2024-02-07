@@ -33,6 +33,7 @@ FilterUnit: Box<Filter> = {
 
 Expr: Box<Expr> = {
     ChainableFilter => Box::new(Expr::Filter(<>)),
+    "ident" => Box::new(Expr::Value(Value::Symbol(<>))),
     "string" => Box::new(Expr::Value(Value::String(<>))),
     "int" => Box::new(Expr::Value(Value::Int(<>))),
     "bool" => Box::new(Expr::Value(Value::Bool(<>))),

@@ -53,11 +53,20 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
     );
 
     map.insert("eqv?", |value, args| {
-        if *value == *args[0] {
-            Ok(Some(value))
-        } else {
-            Ok(None)
+        Ok(Some(Box::new(SchemeValue::Bool(*value == *args[0]))))
+    });
+
+    map.insert("filter", |value, args| match *args[0].clone() {
+        SchemeValue::Symbol(v) => {
+            let f = *BUILTIN_FUNCS.get(v.as_str()).unwrap();
+            let result = f(value.clone(), args[1..].to_vec())?.unwrap();
+            if !matches!(*result, SchemeValue::Bool(false)) {
+                Ok(Some(value))
+            } else {
+                Ok(None)
+            }
         }
+        _ => Err(FuncError::WrongType()),
     });
 
     map
