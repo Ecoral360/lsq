@@ -1,0 +1,59 @@
+use crate::lexer::LexicalError;
+use crate::token::Token;
+use crate::ast::{
+    Query,
+    Filter,
+};
+
+grammar;
+
+pub Query: Query = <sub_queries:Sep<"|", SubQuery>> => {
+    let filters = sub_queries.into_iter().flatten().collect();
+    Query::new(filters)
+};
+
+SubQuery: Vec<Box<Filter>> = {
+    FilterUnit => vec![<>],
+    <ChainableFilter+>,
+};
+
+ChainableFilter: Box<Filter> = {
+    ".ident" => Box::new(Filter::Key(<>)),
+    "." "(" <"int"> ")" => Box::new(Filter::Index(<>)),
+    ".()" => Box::new(Filter::ListIter),
+};
+
+FilterUnit: Box<Filter> = {
+    "." => Box::new(Filter::Identity),
+};
+
+
+Sep<S, T>: Vec<T> = {
+    <mut v:(<T> S)*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    }
+};
+
+extern {
+    type Location = usize;
+    type Error = LexicalError;
+
+
+    enum Token {
+        "(" => Token::OpenParen,
+        ")" => Token::CloseParen,
+        "ident" => Token::Ident(<String>),
+        ".ident" => Token::KeyIdent(<String>),
+        "int" => Token::Int(<i64>),
+        "float" => Token::Float(<f64>),
+        "string" => Token::String(<String>),
+        "." => Token::Dot,
+        ".()" => Token::DotParen,
+        "|" => Token::Pipe,
+    }
+}
+
