@@ -5,6 +5,7 @@ mod token;
 mod lexer;
 mod ast;
 mod scheme_ast;
+mod func;
 
 use std::io::Read;
 

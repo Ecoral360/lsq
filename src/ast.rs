@@ -16,8 +16,15 @@ pub enum Filter {
     /// x | filter1, filter2, ... | y
     Branch(Vec<Box<Filter>>),
     ListIter,
+    FuncCall {
+        func: String,
+        args: Vec<Box<Expr>>,
+    },
     Expr(Box<Expr>),
 }
 
 #[derive(Debug, Clone)]
-pub enum Expr {}
+pub enum Expr {
+    Filter(Box<Filter>),
+    Value(scheme_ast::Value),
+}

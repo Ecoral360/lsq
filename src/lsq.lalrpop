@@ -3,7 +3,10 @@ use crate::token::Token;
 use crate::ast::{
     Query,
     Filter,
+    Expr,
 };
+
+use crate::scheme_ast::{ Value };
 
 grammar;
 
@@ -18,14 +21,23 @@ SubQuery: Vec<Box<Filter>> = {
 };
 
 ChainableFilter: Box<Filter> = {
-    ".ident" => Box::new(Filter::Key(<>)),
-    "." "(" <"int"> ")" => Box::new(Filter::Index(<>)),
-    ".()" => Box::new(Filter::ListIter),
+    ";ident" => Box::new(Filter::Key(<>)),
+    ";" "(" <"int"> ")" => Box::new(Filter::Index(<>)),
+    ";()" => Box::new(Filter::ListIter),
 };
 
 FilterUnit: Box<Filter> = {
-    "." => Box::new(Filter::Identity),
+    ";" => Box::new(Filter::Identity),
+    <func:"ident"> <args:Expr*> => Box::new(Filter::FuncCall{func, args}),
 };
+
+Expr: Box<Expr> = {
+    ChainableFilter => Box::new(Expr::Filter(<>)),
+    "string" => Box::new(Expr::Value(Value::String(<>))),
+    "int" => Box::new(Expr::Value(Value::Int(<>))),
+    "bool" => Box::new(Expr::Value(Value::Bool(<>))),
+}
+
 
 
 Sep<S, T>: Vec<T> = {
@@ -47,12 +59,13 @@ extern {
         "(" => Token::OpenParen,
         ")" => Token::CloseParen,
         "ident" => Token::Ident(<String>),
-        ".ident" => Token::KeyIdent(<String>),
+        ";ident" => Token::KeyIdent(<String>),
         "int" => Token::Int(<i64>),
         "float" => Token::Float(<f64>),
         "string" => Token::String(<String>),
-        "." => Token::Dot,
-        ".()" => Token::DotParen,
+        ";" => Token::Identity,
+        ";()" => Token::ListIter,
+        "bool" => Token::Bool(<bool>),
         "|" => Token::Pipe,
     }
 }

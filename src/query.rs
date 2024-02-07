@@ -5,7 +5,8 @@ use derive_new::new;
 use once_cell::sync::Lazy;
 
 use crate::{
-    ast::{Filter, Query},
+    ast::{Expr, Filter, Query},
+    func::BUILTIN_FUNCS,
     scheme,
     scheme_ast::Value as SchemeValue,
 };
@@ -73,8 +74,38 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
             let mut final_branches = vec![];
             for branch in branches {
                 match branch.as_ref() {
-                    SchemeValue::List(l) => final_branches.extend(l.clone()),
+                    SchemeValue::List(l) | SchemeValue::Vector(l) => {
+                        final_branches.extend(l.clone())
+                    }
                     _ => panic!("Expected list"),
+                }
+            }
+
+            final_branches
+        }
+        Filter::FuncCall { func, args } => {
+            let func = *BUILTIN_FUNCS.get(func.as_str()).unwrap();
+            let mut final_branches = vec![];
+
+            let args = args
+                .into_iter()
+                .map(|arg| match *arg.clone() {
+                    Expr::Filter(f) => {
+                        let result = handle_filter(&*f, branches);
+                        if result.len() == 1 {
+                            result[0].clone()
+                        } else {
+                            Box::new(SchemeValue::List(result))
+                        }
+                    }
+                    Expr::Value(v) => Box::new(v),
+                })
+                .collect::<Vec<_>>();
+
+            for branch in branches {
+                let new_value = func(branch.clone(), args.clone()).unwrap();
+                if let Some(value) = new_value {
+                    final_branches.push(value);
                 }
             }
 
