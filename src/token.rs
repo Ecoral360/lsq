@@ -17,8 +17,11 @@ pub enum Token {
     // #[regex(r"['`]\|(\\\||[^\|])\|", |lex| lex.slice().to_string())]
     Ident(String),
 
-    #[regex(r"\.[a-zA-Z_!\$%\*\/:<=>\?@^~][a-zA-Z0-9_!\$%\*\+\-\.\/:<=>\?@^~]*", |lex| lex.slice()[1..].to_string())]
-    #[regex(r"\.\|(\\\||[^\|])\|", |lex| lex.slice()[1..].to_string())]
+    #[regex(r"\.[a-zA-Z_!\$%\*\/:<=>\?@^~][a-zA-Z0-9_!\$%\*\+\-\/:<=>\?@^~]*", |lex| lex.slice()[1..].to_string())]
+    #[regex(r"\.\|(\\\||[^\|])*\|", |lex| {
+        let s = &lex.slice()[2..];
+        s[..s.len() - 1].to_string()
+    })]
     KeyIdent(String),
 
     #[token(".")]
