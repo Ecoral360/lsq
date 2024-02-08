@@ -54,8 +54,9 @@ You have a `people.scm` file:
 and you want to get the name of everyone who is major (18+). You could write this query:
 ```sh
 cat people.scm | lsq ';() | select ;(;info;age) >=? 18'
-
-# OUTPUT
+```
+Outputs:
+```scm
 (name "Mathis" info (age 20))
 (name "Jean" info (age 28))
 (name "Enric" info (age 20))
