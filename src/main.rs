@@ -1,11 +1,11 @@
 #![allow(unused)]
 
-mod query;
-mod token;
-mod lexer;
 mod ast;
-mod scheme_ast;
 mod func;
+mod lexer;
+mod query;
+mod scheme_ast;
+mod token;
 
 use std::io::Read;
 
@@ -38,10 +38,18 @@ struct Sq {
 
     #[clap(long = "ast", default_value = "false")]
     show_query: bool,
+
+    #[clap(short = 'V', long, default_value = "false")]
+    version: bool,
 }
 
 fn main() {
     let args = Sq::parse();
+
+    if args.version {
+        println!("lsq 0.1.0");
+        return;
+    }
 
     let lexer = lexer::Lexer::new(&args.query);
     let result_query = lsq::QueryParser::new().parse(lexer);
