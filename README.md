@@ -47,7 +47,7 @@ You have a `people.scm` file:
  (name "Enric" info (age 20))
  (name "Claudia" info (age 18))
  (name "Amelie" info (age 21))
- (name "Bob" info (age 16)))
+ (name "Matteo" info (age 16)))
 
 ```
 
