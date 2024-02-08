@@ -27,6 +27,16 @@ pub fn handle_query(query: Query, content: String) -> Vec<Box<SchemeValue>> {
     branches
 }
 
+pub fn handle_query_scm(query: Query, content: SchemeValue) -> Vec<Box<SchemeValue>> {
+    let mut branches = vec![Box::new(content)];
+
+    for filter in query.filters() {
+        branches = handle_filter(filter.as_ref(), &branches);
+    }
+
+    branches
+}
+
 pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<SchemeValue>> {
     match filter {
         Filter::Identity => branches.to_vec(),
@@ -34,11 +44,17 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
             .into_iter()
             .cloned()
             .map(|branch| match *branch {
-                SchemeValue::List(l) => Box::new(SchemeValue::List(
-                    l.into_iter()
-                        .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
-                        .collect::<Vec<_>>(),
-                )),
+                SchemeValue::List(l) => l
+                    .into_iter()
+                    .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                    .nth(1)
+                    .unwrap()
+                    .clone(),
+                //     SchemeValue::List(
+                //     l.into_iter()
+                //         .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                //         .collect::<Vec<_>>(),
+                // )
                 _ => panic!("Expected list"),
             })
             .collect::<Vec<_>>(),
@@ -87,26 +103,34 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
             let func = *BUILTIN_FUNCS.get(func.as_str()).unwrap();
             let mut final_branches = vec![];
 
-            let args = args
-                .into_iter()
-                .map(|arg| match *arg.clone() {
-                    Expr::Filter(f) => {
-                        let result = handle_filter(&*f, branches);
-                        if result.len() == 1 {
-                            result[0].clone()
-                        } else {
-                            Box::new(SchemeValue::List(result))
-                        }
-                    }
-                    Expr::Value(v) => Box::new(v),
-                })
-                .collect::<Vec<_>>();
-
             for branch in branches {
+                let args = args
+                    .into_iter()
+                    .map(|arg| match *arg.clone() {
+                        Expr::Filter(f) => {
+                            let result = handle_filter(&*f, vec![branch.clone()].as_ref());
+                            if result.len() == 1 {
+                                result[0].clone()
+                            } else {
+                                Box::new(SchemeValue::List(result))
+                            }
+                        }
+                        Expr::Value(v) => Box::new(v),
+                    })
+                    .collect::<Vec<_>>();
                 let new_value = func(branch.clone(), args.clone()).unwrap();
                 if let Some(value) = new_value {
                     final_branches.push(value);
                 }
+            }
+
+            final_branches
+        }
+        Filter::SubQuery(query) => {
+            let mut final_branches = vec![];
+            for branch in branches {
+                let new_branches = handle_query_scm(*query.clone(), *branch.clone());
+                final_branches.extend(new_branches);
             }
 
             final_branches

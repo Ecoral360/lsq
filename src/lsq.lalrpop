@@ -22,8 +22,9 @@ SubQuery: Vec<Box<Filter>> = {
 
 ChainableFilter: Box<Filter> = {
     ";ident" => Box::new(Filter::Key(<>)),
-    ";" "(" <"int"> ")" => Box::new(Filter::Index(<>)),
+    ";" "[" <"int"> "]" => Box::new(Filter::Index(<>)),
     ";()" => Box::new(Filter::ListIter),
+    ";" "(" <Query> ")" => Box::new(Filter::SubQuery(Box::new(<>))),
 };
 
 FilterUnit: Box<Filter> = {
@@ -59,6 +60,8 @@ extern {
     enum Token {
         "(" => Token::OpenParen,
         ")" => Token::CloseParen,
+        "[" => Token::OpenBracket,
+        "]" => Token::CloseBracket,
         "ident" => Token::Ident(<String>),
         ";ident" => Token::KeyIdent(<String>),
         "int" => Token::Int(<i64>),

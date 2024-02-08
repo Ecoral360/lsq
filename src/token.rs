@@ -10,6 +10,12 @@ pub enum Token {
     #[token(")")]
     CloseParen,
 
+    #[token("[")]
+    OpenBracket,
+
+    #[token("]")]
+    CloseBracket,
+
     #[token("|")]
     Pipe,
 
@@ -55,6 +61,8 @@ impl fmt::Display for Token {
         let to_string = match self {
             Token::OpenParen => "OpenParen<(>".to_owned(),
             Token::CloseParen => "CloseParen<)>".to_owned(),
+            Token::OpenBracket => "OpenBracket<[>".to_owned(),
+            Token::CloseBracket => "CloseBracket<]>".to_owned(),
             Token::Pipe => "Pipe<|>".to_owned(),
             Token::Ident(s) => format!("Ident({})", s),
             Token::KeyIdent(s) => format!("KeyIdent({})", s),

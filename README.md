@@ -31,14 +31,30 @@ some-op | lsq 'query'
 The `lsq` language is a query language made to access and traverse s-expression with
 ease.
 
-A `lsq` query is made up of **filters** separated by the `|` symbol. The list
+A `lsq` query is made up of **filters** separated by the `|` symbol. The list of
 
 > While the number of builtin filters and builtin functions provided by `lsp` is low at the moment, it is rapidly expanding.
 > If the language doesn't support something you need, feel free to open an Issue!
 
 ## Examples
 
+You have a `people.scm` file:
 
+```scm
+((name "Mathis" info (age 20))
+ (name "Jean" info (age 28))
+ (name "Alice" info (age 12))
+ (name "Enric" info (age 20))
+ (name "Claudia" info (age 18))
+ (name "Amelie" info (age 21))
+ (name "Bob" info (age 16)))
+
+```
+
+and you want to get the name of everyone who is major (18+). You could write this query:
+```sh
+cat people.scm | lsq ';() | select ;(;info;age) >=? 18'
+```
 
 ## License
 

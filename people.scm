@@ -1,0 +1,7 @@
+((name "Mathis" info (age 20))
+ (name "Jean" info (age 28))
+ (name "Alice" info (age 12))
+ (name "Enric" info (age 20))
+ (name "Claudia" info (age 18))
+ (name "Amelie" info (age 21))
+ (name "Bob" info (age 16)))

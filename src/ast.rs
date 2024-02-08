@@ -20,6 +20,7 @@ pub enum Filter {
         func: String,
         args: Vec<Box<Expr>>,
     },
+    SubQuery(Box<Query>),
     Expr(Box<Expr>),
 }
 
