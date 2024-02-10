@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, usize};
 
 use derive_getters::Getters;
 use derive_new::new;
@@ -40,7 +40,7 @@ pub fn handle_query_scm(query: Query, content: SchemeValue) -> Vec<Box<SchemeVal
 pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<SchemeValue>> {
     match filter {
         Filter::Identity => branches.to_vec(),
-        Filter::Key(key) => branches
+        Filter::Tail(key) => branches
             .into_iter()
             .cloned()
             .map(|branch| match *branch {
@@ -50,26 +50,43 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
                         .skip(1)
                         .collect::<Vec<_>>(),
                 )),
-                // l
-                // .into_iter()
-                // .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
-                // .nth(1)
-                // .unwrap()
-                // .clone(),
                 _ => panic!("Expected list"),
             })
             .collect::<Vec<_>>(),
-        Filter::Index(index) => branches
+
+        Filter::Head(key) => branches
+            .into_iter()
+            .cloned()
+            .map(|branch| match *branch {
+                SchemeValue::List(l) => Box::new(SchemeValue::List(
+                    l.into_iter()
+                        .take_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                        .collect::<Vec<_>>(),
+                )),
+                _ => panic!("Expected list"),
+            })
+            .collect::<Vec<_>>(),
+
+        Filter::Key(key) => branches
+            .into_iter()
+            .cloned()
+            .map(|branch| match *branch {
+                SchemeValue::List(l) => l
+                    .into_iter()
+                    .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                    .nth(1)
+                    .unwrap()
+                    .clone(),
+                _ => panic!("Expected list"),
+            })
+            .collect::<Vec<_>>(),
+
+        Filter::Index(i) => branches
             .into_iter()
             .cloned()
             .map(|branch| match *branch {
                 SchemeValue::List(l) | SchemeValue::Vector(l) => {
-                    let index = if *index < 0 {
-                        l.len() as i64 + index
-                    } else {
-                        *index
-                    } as usize;
-
+                    let index = normalize_idx(*i, l.len());
                     if index < l.len() {
                         l[index].clone()
                     } else {
@@ -79,6 +96,26 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
                 _ => panic!("Expected list"),
             })
             .collect::<Vec<_>>(),
+
+        Filter::Slice(start, end) => branches
+            .into_iter()
+            .cloned()
+            .map(|branch| match *branch {
+                SchemeValue::List(l) | SchemeValue::Vector(l) => {
+                    let start = start.map(|s| normalize_idx(s, l.len()));
+                    let end = end.map(|e| normalize_idx(e, l.len()));
+
+                    Box::new(match (start, end) {
+                        (None, None) => SchemeValue::List(l),
+                        (Some(start), None) => SchemeValue::List(l[start..].to_vec()),
+                        (None, Some(end)) => SchemeValue::List(l[..end].to_vec()),
+                        (Some(start), Some(end)) => SchemeValue::List(l[start..end].to_vec()),
+                    })
+                }
+                _ => panic!("Expected list"),
+            })
+            .collect::<Vec<_>>(),
+
         Filter::Branch(filters) => {
             let mut final_branches = vec![];
             for filter in filters {
@@ -87,6 +124,7 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
 
             final_branches
         }
+
         Filter::ListIter => {
             let mut final_branches = vec![];
             for branch in branches {
@@ -138,4 +176,8 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
         }
         Filter::Expr(_) => unimplemented!(),
     }
+}
+
+const fn normalize_idx(index: i64, len: usize) -> usize {
+    (if index < 0 { len as i64 + index } else { index } as usize)
 }

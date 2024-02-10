@@ -22,7 +22,10 @@ pub enum Token {
     #[token("|")]
     Pipe,
 
-    #[regex(r"[a-zA-Z_!\$%\*\/:<=>\?@^~#](:?[#a-zA-Z0-9_!\$%\*\+\-\.\/<=>\?@^~])*", |lex| lex.slice().to_string())]
+    #[token(":")]
+    Colon,
+
+    #[regex(r"[a-zA-Z_!\$%\*\/<=>\?@^~#](:?[#a-zA-Z0-9_!\$%\*\+\-\.\/<=>\?@^~])*", |lex| lex.slice().to_string())]
     // #[regex(r"['`]\|(\\\||[^\|])\|", |lex| lex.slice().to_string())]
     Ident(String),
 
@@ -45,6 +48,7 @@ pub enum Token {
         s[..s.len() - 1].to_string()
     })]
     KeyIdent(String),
+
 
     #[token(";")]
     Identity,
@@ -107,6 +111,7 @@ impl fmt::Display for Token {
             Token::KeyIdent(s) => format!("KeyIdent({})", s),
             Token::Identity => "Identity<;>".to_owned(),
             Token::Comma => "Comma<,>".to_owned(),
+            Token::Colon => "Colon<:>".to_owned(),
             Token::Quote => "Quote<'>".to_owned(),
             Token::Quasiquote => "Quasiquote<`>".to_owned(),
             Token::ListIter => "ListIter<;()>".to_owned(),

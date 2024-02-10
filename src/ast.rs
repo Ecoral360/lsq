@@ -12,7 +12,10 @@ pub struct Query {
 pub enum Filter {
     Identity,
     Key(String),
+    Tail(String),
+    Head(String),
     Index(i64),
+    Slice(Option<i64>, Option<i64>),
     /// x | filter1, filter2, ... | y
     Branch(Vec<Box<Filter>>),
     ListIter,

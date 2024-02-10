@@ -52,6 +52,10 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
         "cddaar", "cdddar"
     );
 
+    map.insert("cr", |value, args| {
+        Ok(Some(value))
+    });
+
     map.insert("eqv?", |value, args| {
         Ok(Some(Box::new(SchemeValue::Bool(*value == *args[0]))))
     });

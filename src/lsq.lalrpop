@@ -25,6 +25,9 @@ SubQuery: Vec<Box<Filter>> = {
 ChainableFilter: Box<Filter> = {
     ";ident" => Box::new(Filter::Key(<>)),
     ";" "[" <"int"> "]" => Box::new(Filter::Index(<>)),
+    ";" "[" <"int"?> ":" <"int"?> "]" => Box::new(Filter::Slice(<>)),
+    ";" "[" <"ident"> => Box::new(Filter::Tail(<>)),
+    <";ident"> "]" => Box::new(Filter::Head(<>)),
     ";()" => Box::new(Filter::ListIter),
     ";" "(" <Query> ")" => Box::new(Filter::SubQuery(Box::new(<>))),
 };
@@ -90,6 +93,7 @@ extern {
         "bool" => Token::Bool(<bool>),
         "|" => Token::Pipe,
         "," => Token::Comma,
+        ":" => Token::Colon,
         "'" => Token::Quote,
         "`" => Token::Quasiquote,
     }
