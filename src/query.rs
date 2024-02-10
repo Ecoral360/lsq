@@ -44,17 +44,18 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
             .into_iter()
             .cloned()
             .map(|branch| match *branch {
-                SchemeValue::List(l) => l
-                    .into_iter()
-                    .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
-                    .nth(1)
-                    .unwrap()
-                    .clone(),
-                //     SchemeValue::List(
-                //     l.into_iter()
-                //         .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
-                //         .collect::<Vec<_>>(),
-                // )
+                SchemeValue::List(l) => Box::new(SchemeValue::List(
+                    l.into_iter()
+                        .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                        .skip(1)
+                        .collect::<Vec<_>>(),
+                )),
+                // l
+                // .into_iter()
+                // .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                // .nth(1)
+                // .unwrap()
+                // .clone(),
                 _ => panic!("Expected list"),
             })
             .collect::<Vec<_>>(),

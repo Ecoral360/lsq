@@ -58,7 +58,7 @@ impl fmt::Display for Value {
                     .collect::<Vec<_>>()
                     .join(" ")
             ),
-            Value::Nil => format!("nil"),
+            Value::Nil => format!("()"),
         };
         write!(f, "{}", to_string)
     }

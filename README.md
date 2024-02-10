@@ -52,7 +52,7 @@ You have a `people.scm` file:
 
 and you want to get the name of everyone who is major (18+). You could write this query:
 ```sh
-cat people.scm | lsq ';() | select ;(;info;age) >=? 18'
+cat people.scm | lsq ';() | select >=? ;(;info;age) 18'
 ```
 Outputs:
 ```scm

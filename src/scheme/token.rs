@@ -14,7 +14,10 @@ pub enum Token {
     CloseParen,
 
     #[regex(r"[a-zA-Z_!\$%\*\/:<=>\?@^~#](:?[#a-zA-Z0-9_!\$%\*\+\-\.\/<=>\?@^~])*", |lex| lex.slice().to_string())]
-    #[regex(r"\|(\\\||[^\|])\|", |lex| lex.slice().to_string())]
+    #[regex(r"\|(\\\||[^\|])*\|", |lex| {
+        let s = &lex.slice()[1..];
+        s[..s.len() - 1].to_string()
+    })]
     Ident(String),
 
     #[regex(r"[a-zA-Z_!\$%\*\/<=>\?@^~#](:?[#a-zA-Z0-9_!\$%\*\+\-\.\/<=>\?@^~])*:", |lex| {
@@ -69,6 +72,7 @@ pub enum Token {
     #[token(",")]
     Unquote,
 
+    #[regex(r"#![^\n]*", logos::skip, priority = 5)]
     #[regex(r";[^\n]*", logos::skip)]
     #[regex(r"[ \t\n\f]+", logos::skip)]
     Error,

@@ -96,10 +96,10 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
         _ => Err(FuncError::WrongType()),
     });
 
-    map.insert("select", |value, args| match *args[1].clone() {
+    map.insert("select", |value, args| match *args[0].clone() {
         SchemeValue::Symbol(v) => {
             let f = *BUILTIN_FUNCS.get(v.as_str()).unwrap();
-            let result = f(args[0].clone(), args[2..].to_vec())?.unwrap();
+            let result = f(args[1].clone(), args[2..].to_vec())?.unwrap();
             if !matches!(*result, SchemeValue::Bool(false)) {
                 Ok(Some(value))
             } else {
