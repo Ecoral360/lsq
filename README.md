@@ -48,7 +48,6 @@ You have a `people.scm` file:
  (name "Claudia" info (age 18))
  (name "Amelie" info (age 21))
  (name "Matteo" info (age 16)))
-
 ```
 
 and you want to get the name of everyone who is major (18+). You could write this query:
@@ -67,3 +66,7 @@ Outputs:
 ## License
 
 `lsq` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+
+## TODO
+
+- [ ] Add good error handling

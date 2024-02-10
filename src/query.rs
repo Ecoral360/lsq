@@ -7,8 +7,8 @@ use once_cell::sync::Lazy;
 use crate::{
     ast::{Expr, Filter, Query},
     func::BUILTIN_FUNCS,
-    scheme,
-    scheme_ast::Value as SchemeValue,
+    lsq,
+    scheme::ast::Value as SchemeValue,
 };
 
 #[derive(Debug, Clone, new, Getters)]
@@ -17,8 +17,8 @@ struct QueryState {
     branches: Vec<Box<SchemeValue>>,
 }
 
-pub fn handle_query(query: Query, content: String) -> Vec<Box<SchemeValue>> {
-    let mut branches = scheme::SchemeParser::new().parse(&content).unwrap();
+pub fn handle_query(query: Query, content: Vec<Box<SchemeValue>>) -> Vec<Box<SchemeValue>> {
+    let mut branches = content;
 
     for filter in query.filters() {
         branches = handle_filter(filter.as_ref(), &branches);
@@ -115,7 +115,7 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
                                 Box::new(SchemeValue::List(result))
                             }
                         }
-                        Expr::Value(v) => Box::new(v),
+                        Expr::Value(v) => v,
                     })
                     .collect::<Vec<_>>();
                 let new_value = func(branch.clone(), args.clone()).unwrap();

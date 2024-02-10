@@ -1,7 +1,7 @@
 use derive_getters::Getters;
 use derive_new::new;
 
-use crate::scheme_ast;
+use crate::scheme::ast::Value as SchemeValue;
 
 #[derive(Debug, new, Getters, Clone)]
 pub struct Query {
@@ -27,5 +27,5 @@ pub enum Filter {
 #[derive(Debug, Clone)]
 pub enum Expr {
     Filter(Box<Filter>),
-    Value(scheme_ast::Value),
+    Value(Box<SchemeValue>),
 }

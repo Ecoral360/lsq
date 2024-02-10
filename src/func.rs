@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ast::Expr, scheme_ast::Value as SchemeValue};
+use crate::{ast::Expr, scheme::ast::Value as SchemeValue};
 use once_cell::sync::Lazy;
 
 #[derive(Debug, Clone)]
@@ -97,6 +97,19 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
     });
 
     map.insert("select", |value, args| match *args[1].clone() {
+        SchemeValue::Symbol(v) => {
+            let f = *BUILTIN_FUNCS.get(v.as_str()).unwrap();
+            let result = f(args[0].clone(), args[2..].to_vec())?.unwrap();
+            if !matches!(*result, SchemeValue::Bool(false)) {
+                Ok(Some(value))
+            } else {
+                Ok(None)
+            }
+        }
+        _ => Err(FuncError::WrongType()),
+    });
+
+    map.insert("map", |value, args| match *args[1].clone() {
         SchemeValue::Symbol(v) => {
             let f = *BUILTIN_FUNCS.get(v.as_str()).unwrap();
             let result = f(args[0].clone(), args[2..].to_vec())?.unwrap();

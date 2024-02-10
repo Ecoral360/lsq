@@ -6,7 +6,9 @@ use crate::ast::{
     Expr,
 };
 
-use crate::scheme_ast::{ Value };
+use crate::scheme::ast::{
+    Value
+};
 
 grammar;
 
@@ -34,11 +36,25 @@ FilterUnit: Box<Filter> = {
 
 Expr: Box<Expr> = {
     ChainableFilter => Box::new(Expr::Filter(<>)),
-    "ident" => Box::new(Expr::Value(Value::Symbol(<>))),
-    "string" => Box::new(Expr::Value(Value::String(<>))),
-    "int" => Box::new(Expr::Value(Value::Int(<>))),
-    "bool" => Box::new(Expr::Value(Value::Bool(<>))),
+    Value => Box::new(Expr::Value(<>)),
 }
+
+
+pub Scheme: Vec<Box<Value>> = <Value*>;
+
+pub Value: Box<Value> = {
+    "int" => Box::new(Value::Int(<>)),
+    "float" => Box::new(Value::Float(<>)),
+    "string" => Box::new(Value::String(<>)),
+    "ident" => Box::new(Value::Symbol(<>)),
+    "bool" => Box::new(Value::Bool(<>)),
+    "char" => Box::new(Value::Char(<>)),
+    "'" <Value> => Box::new(Value::Quote(<>)),
+    "`" <Value> => Box::new(Value::Quasiquote(<>)),
+    "," <Value> => Box::new(Value::Unquote(<>)),
+    "#(" <Value*> ")" => Box::new(Value::Vector(<>)),
+    "(" <Value*> ")" => Box::new(Value::List(<>)),
+};
 
 
 
@@ -59,6 +75,7 @@ extern {
 
     enum Token {
         "(" => Token::OpenParen,
+        "#(" => Token::HashOpenParen,
         ")" => Token::CloseParen,
         "[" => Token::OpenBracket,
         "]" => Token::CloseBracket,
@@ -67,10 +84,14 @@ extern {
         "int" => Token::Int(<i64>),
         "float" => Token::Float(<f64>),
         "string" => Token::String(<String>),
+        "char" => Token::Char(<char>),
         ";" => Token::Identity,
         ";()" => Token::ListIter,
         "bool" => Token::Bool(<bool>),
         "|" => Token::Pipe,
+        "," => Token::Comma,
+        "'" => Token::Quote,
+        "`" => Token::Quasiquote,
     }
 }
 

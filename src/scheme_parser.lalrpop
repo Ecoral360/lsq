@@ -1,0 +1,48 @@
+use crate::scheme::ast::{
+    Value
+};
+use crate::scheme::lexer::LexicalError;
+use crate::scheme::token::Token;
+
+grammar;
+
+pub Scheme: Vec<Box<Value>> = <Value*>;
+
+pub Value: Box<Value> = {
+    "int" => Box::new(Value::Int(<>)),
+    "float" => Box::new(Value::Float(<>)),
+    "string" => Box::new(Value::String(<>)),
+    "ident" => Box::new(Value::Symbol(<>)),
+    "bool" => Box::new(Value::Bool(<>)),
+    "char" => Box::new(Value::Char(<>)),
+    "'" <Value> => Box::new(Value::Quote(<>)),
+    "`" <Value> => Box::new(Value::Quasiquote(<>)),
+    "," <Value> => Box::new(Value::Unquote(<>)),
+    "#(" <Value*> ")" => Box::new(Value::Vector(<>)),
+    "(" <Value*> ")" => Box::new(Value::List(<>)),
+    "()" => Box::new(Value::Nil),
+};
+
+
+extern {
+    type Location = usize;
+    type Error = LexicalError;
+
+
+    enum Token {
+        "(" => Token::OpenParen,
+        "#(" => Token::HashOpenParen,
+        ")" => Token::CloseParen,
+        "ident" => Token::Ident(<String>),
+        "int" => Token::Int(<i64>),
+        "float" => Token::Float(<f64>),
+        "string" => Token::String(<String>),
+        "char" => Token::Char(<char>),
+        "()" => Token::Nil,
+        "bool" => Token::Bool(<bool>),
+        "," => Token::Unquote,
+        "'" => Token::Quote,
+        "`" => Token::Quasiquote,
+    }
+}
+
