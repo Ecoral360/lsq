@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 use logos::{Logos, SpannedIter};
 
 use crate::scheme::token::Token;
@@ -7,6 +9,12 @@ pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
 #[derive(Debug)]
 pub enum LexicalError {
     InvalidToken,
+}
+
+impl Display for LexicalError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Invalid token")
+    }
 }
 
 pub struct Lexer<'input> {

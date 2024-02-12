@@ -17,3 +17,5 @@ regex = "1.10.3"
 derive-getters = "0.3.0"
 derive-new = "0.6.0"
 rust_lisp = "0.18.0"
+anyhow = "1.0.79"
+syntect = { version = "5.2.0", features = ["default-syntaxes"] }

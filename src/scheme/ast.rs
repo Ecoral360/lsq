@@ -3,7 +3,6 @@ use core::fmt;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Int(i64),
@@ -32,6 +31,48 @@ impl PartialOrd for Value {
     }
 }
 
+impl Value {
+    pub fn compact_repr(&self, raw: bool) -> String {
+        self.rec_repr_inner(0)
+    }
+
+    pub fn data_repr(&self, raw: bool) -> String {
+        self.rec_repr_inner(0)
+    }
+
+    pub fn code_repr(&self, raw: bool) -> String {
+        self.rec_repr_inner(0)
+    }
+
+    fn rec_repr_inner(&self, depth: usize) -> String {
+        let repr = match self {
+            Value::List(l) => {
+                let len = l.len();
+                let mut lst_repr = String::from("(");
+                for (i, v) in l.iter().enumerate() {
+                    match **v {
+                        Value::List(_) => {
+                            lst_repr.push_str(&v.rec_repr_inner(depth + 1).trim_start());
+                            if i < len - 1 {
+                                lst_repr.push('\n');
+                                lst_repr.push_str(&" ".repeat(depth + 1));
+                            }
+                        }
+                        _ => lst_repr.push_str(&v.rec_repr_inner(depth + 1).trim_start()),
+                    }
+                    lst_repr.push(' ');
+                }
+                lst_repr.pop();
+                lst_repr.push(')');
+                lst_repr
+            }
+            _ => self.to_string(),
+        };
+
+        format!("{}{}", " ".repeat(depth), repr)
+    }
+}
+
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let to_string = match self {
@@ -47,12 +88,14 @@ impl fmt::Display for Value {
             Value::List(l) => format!(
                 "({})",
                 l.iter()
-                    .map(|v| format!("{}", v))
+                    .map(|v| match **v {
+                        _ => format!("{}", v),
+                    })
                     .collect::<Vec<_>>()
                     .join(" ")
             ),
             Value::Vector(v) => format!(
-                "[{}]",
+                "#({})",
                 v.iter()
                     .map(|v| format!("{}", v))
                     .collect::<Vec<_>>()

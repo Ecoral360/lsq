@@ -50,6 +50,12 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
                         .skip(1)
                         .collect::<Vec<_>>(),
                 )),
+                SchemeValue::Vector(l) => Box::new(SchemeValue::Vector(
+                    l.into_iter()
+                        .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                        .skip(1)
+                        .collect::<Vec<_>>(),
+                )),
                 _ => panic!("Expected list"),
             })
             .collect::<Vec<_>>(),
@@ -63,6 +69,11 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
                         .take_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
                         .collect::<Vec<_>>(),
                 )),
+                SchemeValue::Vector(l) => Box::new(SchemeValue::Vector(
+                    l.into_iter()
+                        .take_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
+                        .collect::<Vec<_>>(),
+                )),
                 _ => panic!("Expected list"),
             })
             .collect::<Vec<_>>(),
@@ -71,7 +82,7 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
             .into_iter()
             .cloned()
             .map(|branch| match *branch {
-                SchemeValue::List(l) => l
+                SchemeValue::List(l) | SchemeValue::Vector(l) => l
                     .into_iter()
                     .skip_while(|k| k.as_ref() != &SchemeValue::Symbol(key.clone()))
                     .nth(1)
@@ -101,7 +112,7 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
             .into_iter()
             .cloned()
             .map(|branch| match *branch {
-                SchemeValue::List(l) | SchemeValue::Vector(l) => {
+                SchemeValue::List(l) => {
                     let start = start.map(|s| normalize_idx(s, l.len()));
                     let end = end.map(|e| normalize_idx(e, l.len()));
 
@@ -110,6 +121,17 @@ pub fn handle_filter(filter: &Filter, branches: &[Box<SchemeValue>]) -> Vec<Box<
                         (Some(start), None) => SchemeValue::List(l[start..].to_vec()),
                         (None, Some(end)) => SchemeValue::List(l[..end].to_vec()),
                         (Some(start), Some(end)) => SchemeValue::List(l[start..end].to_vec()),
+                    })
+                }
+                SchemeValue::Vector(l) => {
+                    let start = start.map(|s| normalize_idx(s, l.len()));
+                    let end = end.map(|e| normalize_idx(e, l.len()));
+
+                    Box::new(match (start, end) {
+                        (None, None) => SchemeValue::Vector(l),
+                        (Some(start), None) => SchemeValue::Vector(l[start..].to_vec()),
+                        (None, Some(end)) => SchemeValue::Vector(l[..end].to_vec()),
+                        (Some(start), Some(end)) => SchemeValue::Vector(l[start..end].to_vec()),
                     })
                 }
                 _ => panic!("Expected list"),

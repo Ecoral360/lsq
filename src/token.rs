@@ -59,6 +59,9 @@ pub enum Token {
     #[token(";()")]
     ListIter,
 
+    #[token(";#()")]
+    VectorIter,
+
     #[regex(r"[-+]?[0-9]+", |lex| lex.slice().parse::<i64>().unwrap())]
     Int(i64),
 
@@ -115,6 +118,7 @@ impl fmt::Display for Token {
             Token::Quote => "Quote<'>".to_owned(),
             Token::Quasiquote => "Quasiquote<`>".to_owned(),
             Token::ListIter => "ListIter<;()>".to_owned(),
+            Token::VectorIter => "VectorIter<;#()>".to_owned(),
             Token::Int(i) => format!("Int({})", i),
             Token::Float(f) => format!("Float({})", f),
             Token::String(s) => format!("String({})", s),

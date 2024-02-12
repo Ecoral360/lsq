@@ -9,6 +9,12 @@ pub enum LexicalError {
     InvalidToken,
 }
 
+impl std::fmt::Display for LexicalError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Invalid token")
+    }
+}
+
 pub struct Lexer<'input> {
     // instead of an iterator over characters, we have a token iterator
     token_stream: SpannedIter<'input, Token>,

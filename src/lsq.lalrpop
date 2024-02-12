@@ -29,6 +29,7 @@ ChainableFilter: Box<Filter> = {
     ";" "[" <"ident"> => Box::new(Filter::Tail(<>)),
     <";ident"> "]" => Box::new(Filter::Head(<>)),
     ";()" => Box::new(Filter::ListIter),
+    ";#()" => Box::new(Filter::ListIter),
     ";" "(" <Query> ")" => Box::new(Filter::SubQuery(Box::new(<>))),
 };
 
@@ -90,6 +91,7 @@ extern {
         "char" => Token::Char(<char>),
         ";" => Token::Identity,
         ";()" => Token::ListIter,
+        ";#()" => Token::VectorIter,
         "bool" => Token::Bool(<bool>),
         "|" => Token::Pipe,
         "," => Token::Comma,
