@@ -72,6 +72,9 @@ pub enum Token {
     #[token(",")]
     Unquote,
 
+    #[token(",@")]
+    UnquoteSplicing,
+
     #[regex(r"#![^\n]*", logos::skip, priority = 5)]
     #[regex(r";[^\n]*", logos::skip)]
     #[regex(r"[ \t\n\f]+", logos::skip)]
@@ -89,6 +92,7 @@ impl fmt::Display for Token {
             Token::Quote => "Quote<'>".to_owned(),
             Token::Quasiquote => "Quasiquote<`>".to_owned(),
             Token::Unquote => "Comma<,>".to_owned(),
+            Token::UnquoteSplicing => "CommaAt<,@>".to_owned(),
             Token::Int(i) => format!("Int({})", i),
             Token::Float(f) => format!("Float({})", f),
             Token::String(s) => format!("String({})", s),

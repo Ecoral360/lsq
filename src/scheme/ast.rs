@@ -13,6 +13,7 @@ pub enum Value {
     Quote(Box<Value>),
     Quasiquote(Box<Value>),
     Unquote(Box<Value>),
+    UnquoteSplicing(Box<Value>),
     Char(char),
     List(Vec<Box<Value>>),
     Vector(Vec<Box<Value>>),
@@ -32,6 +33,28 @@ impl PartialOrd for Value {
 }
 
 impl Value {
+    pub fn is_iterable(&self) -> bool {
+        match self {
+            Value::List(_) | Value::Vector(_) => true,
+            Value::Quote(v)
+            | Value::Quasiquote(v)
+            | Value::Unquote(v)
+            | Value::UnquoteSplicing(v) => v.is_iterable(),
+            _ => false,
+        }
+    }
+
+    pub fn iter_values(&self) -> Option<impl Iterator<Item = &Value>> {
+        match self {
+            Value::List(l) | Value::Vector(l) => Some(l.iter().map(|v| &**v)),
+            Value::Quote(v)
+            | Value::Quasiquote(v)
+            | Value::Unquote(v)
+            | Value::UnquoteSplicing(v) => v.iter_values(),
+            _ => None,
+        }
+    }
+
     pub fn compact_repr(&self, raw: bool) -> String {
         self.rec_repr_inner(0)
     }
@@ -45,28 +68,30 @@ impl Value {
     }
 
     fn rec_repr_inner(&self, depth: usize) -> String {
-        let repr = match self {
-            Value::List(l) => {
-                let len = l.len();
-                let mut lst_repr = String::from("(");
-                for (i, v) in l.iter().enumerate() {
-                    match **v {
-                        Value::List(_) => {
-                            lst_repr.push_str(&v.rec_repr_inner(depth + 1).trim_start());
-                            if i < len - 1 {
-                                lst_repr.push('\n');
-                                lst_repr.push_str(&" ".repeat(depth + 1));
-                            }
-                        }
-                        _ => lst_repr.push_str(&v.rec_repr_inner(depth + 1).trim_start()),
-                    }
-                    lst_repr.push(' ');
+        let repr = if self.is_iterable() {
+            let mut lst_repr = String::from(if matches!(self, Value::List(_)) {
+                "("
+            } else {
+                "#("
+            });
+
+            // We can unwrap here because we know it's an iterable (checked above)
+            let l = self.iter_values().unwrap();
+            for (i, v) in l.enumerate() {
+                if v.is_iterable() {
+                    lst_repr.push_str(&v.rec_repr_inner(depth + 1).trim_start());
+                    lst_repr.push('\n');
+                    lst_repr.push_str(&" ".repeat(depth));
+                } else {
+                    lst_repr.push_str(&v.rec_repr_inner(depth + 1).trim_start());
                 }
-                lst_repr.pop();
-                lst_repr.push(')');
-                lst_repr
+                lst_repr.push(' ');
             }
-            _ => self.to_string(),
+            lst_repr = lst_repr.trim_end().to_string();
+            lst_repr.push(')');
+            lst_repr
+        } else {
+            self.to_string()
         };
 
         format!("{}{}", " ".repeat(depth), repr)
@@ -84,6 +109,7 @@ impl fmt::Display for Value {
             Value::Quote(v) => format!("'{}", v),
             Value::Quasiquote(v) => format!("`{}", v),
             Value::Unquote(v) => format!(",{}", v),
+            Value::UnquoteSplicing(v) => format!(",@{}", v),
             Value::Char(c) => format!("#\\{}", c),
             Value::List(l) => format!(
                 "({})",

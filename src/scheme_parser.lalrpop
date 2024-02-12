@@ -18,6 +18,7 @@ pub Value: Box<Value> = {
     "'" <Value> => Box::new(Value::Quote(<>)),
     "`" <Value> => Box::new(Value::Quasiquote(<>)),
     "," <Value> => Box::new(Value::Unquote(<>)),
+    ",@" <Value> => Box::new(Value::UnquoteSplicing(<>)),
     "#(" <Value*> ")" => Box::new(Value::Vector(<>)),
     "(" <Value*> ")" => Box::new(Value::List(<>)),
     "()" => Box::new(Value::Nil),
@@ -41,6 +42,7 @@ extern {
         "()" => Token::Nil,
         "bool" => Token::Bool(<bool>),
         "," => Token::Unquote,
+        ",@" => Token::UnquoteSplicing,
         "'" => Token::Quote,
         "`" => Token::Quasiquote,
     }

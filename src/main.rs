@@ -118,6 +118,7 @@ fn main() -> AnyResult<()> {
             let escaped = syntect::util::as_24_bit_terminal_escaped(&ranges[..], false);
             print!("{}", escaped);
         }
+        println!();
     }
 
     Ok(())
