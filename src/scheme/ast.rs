@@ -56,7 +56,7 @@ impl Value {
     }
 
     pub fn compact_repr(&self, raw: bool) -> String {
-        self.rec_repr_inner(0)
+        self.to_string()
     }
 
     pub fn data_repr(&self, raw: bool) -> String {
@@ -64,7 +64,7 @@ impl Value {
     }
 
     pub fn code_repr(&self, raw: bool) -> String {
-        self.rec_repr_inner(0)
+        todo!()
     }
 
     fn rec_repr_inner(&self, depth: usize) -> String {
