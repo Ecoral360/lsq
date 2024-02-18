@@ -114,9 +114,7 @@ impl fmt::Display for Value {
             Value::List(l) => format!(
                 "({})",
                 l.iter()
-                    .map(|v| match **v {
-                        _ => format!("{}", v),
-                    })
+                    .map(|v| format!("{}", v))
                     .collect::<Vec<_>>()
                     .join(" ")
             ),

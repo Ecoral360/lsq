@@ -52,9 +52,7 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
         "cddaar", "cdddar"
     );
 
-    map.insert("cr", |value, args| {
-        Ok(Some(value))
-    });
+    map.insert("cr", |value, args| Ok(Some(value)));
 
     map.insert("eqv?", |value, args| {
         Ok(Some(Box::new(SchemeValue::Bool(*value == *args[0]))))
@@ -78,6 +76,13 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
 
     map.insert("<?", |value, args| {
         Ok(Some(Box::new(SchemeValue::Bool(*value < *args[0]))))
+    });
+
+    map.insert("length", |value, args| match *value {
+        SchemeValue::List(ref l) | SchemeValue::Vector(ref l) => {
+            Ok(Some(Box::new(SchemeValue::Int(l.len() as i64))))
+        }
+        _ => Err(FuncError::WrongType()),
     });
 
     map.insert("filter", |value, args| match *args[0].clone() {
@@ -126,7 +131,7 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
         _ => Err(FuncError::WrongType()),
     });
 
-    map.insert("debug", |value, args| {
+    map.insert("print", |value, args| {
         println!(
             "; is '{} & args is '({})",
             value,
@@ -136,6 +141,15 @@ pub static BUILTIN_FUNCS: Lazy<BuiltinFuncType> = Lazy::new(|| {
                 .join(" ")
         );
         Ok(Some(value))
+    });
+
+    map.insert("inspect", |value, args| match *args[0].clone() {
+        SchemeValue::Symbol(v) => {
+            let f = *BUILTIN_FUNCS.get(v.as_str()).unwrap();
+            let result = f(value.clone(), args[1..].to_vec())?.unwrap();
+            Ok(Some(value))
+        }
+        _ => Err(FuncError::WrongType()),
     });
 
     map
